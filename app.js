@@ -1,6 +1,6 @@
 const DEVICE_NAME = '=DTH';
-const SERVICE_UUID = 0xFFE0;
-const CHARACTERISTIC_UUID = 0xFFE1;
+const SERVICE_UUID = '0000ffe0-0000-1000-8000-00805f9b34fb';
+const CHARACTERISTIC_UUID = '0000ffe1-0000-1000-8000-00805f9b34fb';
 
 const encoder = new TextEncoder();
 let bluetoothDevice = null;
@@ -30,14 +30,20 @@ function setLastCommand(command) {
   lastCommand.textContent = command.trim() || 'X';
 }
 
+function showError(prefix, error) {
+  const message = error && error.message ? error.message : String(error);
+  setStatus(`${prefix}: ${message}`);
+}
+
 async function connectBluetooth() {
   if (!('bluetooth' in navigator)) {
     setStatus('Bluetooth unavailable');
+    alert('当前浏览器没有 Web Bluetooth。iPhone 请用 Bluefy 打开这个网页，不要用 Safari/Chrome。');
     return;
   }
 
   try {
-    setStatus('Searching...');
+    setStatus('Open Bluetooth picker...');
     bluetoothDevice = await requestBluetoothDevice();
 
     bluetoothDevice.addEventListener('gattserverdisconnected', handleDisconnect);
@@ -52,31 +58,15 @@ async function connectBluetooth() {
   } catch (error) {
     console.error('Bluetooth connection failed:', error);
     carCharacteristic = null;
-    setStatus('Offline');
+    showError(error.name || 'Bluetooth failed', error);
   }
 }
 
 async function requestBluetoothDevice() {
-  try {
-    return await navigator.bluetooth.requestDevice({
-      filters: [
-        { name: DEVICE_NAME },
-        { name: 'DTH' },
-        { namePrefix: '=D' },
-        { namePrefix: 'DT' },
-      ],
-      optionalServices: [SERVICE_UUID],
-    });
-  } catch (error) {
-    if (error.name !== 'NotFoundError') {
-      throw error;
-    }
-
-    return navigator.bluetooth.requestDevice({
-      acceptAllDevices: true,
-      optionalServices: [SERVICE_UUID],
-    });
-  }
+  return navigator.bluetooth.requestDevice({
+    acceptAllDevices: true,
+    optionalServices: [SERVICE_UUID],
+  });
 }
 
 function handleDisconnect() {
@@ -93,7 +83,12 @@ async function sendCommand(command) {
 
   const payload = encoder.encode(command);
   writeQueue = writeQueue
-    .then(() => carCharacteristic.writeValue(payload))
+    .then(() => {
+      if (carCharacteristic.writeValueWithoutResponse) {
+        return carCharacteristic.writeValueWithoutResponse(payload);
+      }
+      return carCharacteristic.writeValue(payload);
+    })
     .then(() => {
       setStatus(`${DEVICE_NAME} · sent ${command.trim() || 'X'}`, true);
     })
