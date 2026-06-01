@@ -7,7 +7,8 @@ const decoder = new TextDecoder();
 let bluetoothDevice = null;
 let carCharacteristic = null;
 let writeQueue = Promise.resolve();
-let lastSpeedSentAt = 0;
+let lastStraightSpeedSentAt = 0;
+let lastTurnSpeedSentAt = 0;
 let telemetryBuffer = '';
 
 const connectButton = document.querySelector('#connectButton');
@@ -15,8 +16,10 @@ const connectLabel = document.querySelector('#connectLabel');
 const connectionStatus = document.querySelector('#connectionStatus');
 const statusDot = document.querySelector('#statusDot');
 const lastCommand = document.querySelector('#lastCommand');
-const speedSlider = document.querySelector('#speedSlider');
-const speedValue = document.querySelector('#speedValue');
+const straightSpeedSlider = document.querySelector('#straightSpeedSlider');
+const straightSpeedValue = document.querySelector('#straightSpeedValue');
+const turnSpeedSlider = document.querySelector('#turnSpeedSlider');
+const turnSpeedValue = document.querySelector('#turnSpeedValue');
 const startButton = document.querySelector('#startButton');
 const stopButton = document.querySelector('#stopButton');
 const resetButton = document.querySelector('#resetButton');
@@ -28,8 +31,9 @@ const centerSensor = document.querySelector('#centerSensor');
 const rightSensor = document.querySelector('#rightSensor');
 const activeCount = document.querySelector('#activeCount');
 const runState = document.querySelector('#runState');
+const speedEcho = document.querySelector('#speedEcho');
 
-const controls = [startButton, stopButton, resetButton, debugButton, speedSlider];
+const controls = [startButton, stopButton, resetButton, debugButton, straightSpeedSlider, turnSpeedSlider];
 
 function setControlsEnabled(enabled) {
   controls.forEach((control) => {
@@ -78,7 +82,8 @@ async function connectBluetooth() {
     await startTelemetryNotifications();
 
     setStatus(deviceName.textContent, true);
-    await sendSpeed(true);
+    await sendStraightSpeed(true);
+    await sendTurnSpeed(true);
     await sendCommand('X', '待机');
   } catch (error) {
     console.error('Bluetooth connection failed:', error);
@@ -130,7 +135,10 @@ function handleTelemetryLine(line) {
   centerSensor.textContent = parts[1];
   rightSensor.textContent = parts[2];
   activeCount.textContent = parts[3];
-  runState.textContent = parts.slice(4).join(',');
+  runState.textContent = parts[4];
+  if (parts.length >= 7) {
+    speedEcho.textContent = `${parts[5]} / ${parts[6]}`;
+  }
 }
 
 async function sendCommand(command, label = command) {
@@ -162,16 +170,28 @@ async function sendCommand(command, label = command) {
   await writeQueue;
 }
 
-async function sendSpeed(force = false) {
-  speedValue.textContent = speedSlider.value;
+async function sendStraightSpeed(force = false) {
+  straightSpeedValue.textContent = straightSpeedSlider.value;
   const now = performance.now();
 
-  if (!force && now - lastSpeedSentAt < 70) {
+  if (!force && now - lastStraightSpeedSentAt < 70) {
     return;
   }
 
-  lastSpeedSentAt = now;
-  await sendCommand(`V:${speedSlider.value}\n`, `速度 ${speedSlider.value}`);
+  lastStraightSpeedSentAt = now;
+  await sendCommand(`F:${straightSpeedSlider.value}\n`, `直线 ${straightSpeedSlider.value}`);
+}
+
+async function sendTurnSpeed(force = false) {
+  turnSpeedValue.textContent = turnSpeedSlider.value;
+  const now = performance.now();
+
+  if (!force && now - lastTurnSpeedSentAt < 70) {
+    return;
+  }
+
+  lastTurnSpeedSentAt = now;
+  await sendCommand(`C:${turnSpeedSlider.value}\n`, `转弯 ${turnSpeedSlider.value}`);
 }
 
 connectButton.addEventListener('click', connectBluetooth);
@@ -180,12 +200,19 @@ stopButton.addEventListener('click', () => sendCommand('X', '停止'));
 resetButton.addEventListener('click', () => sendCommand('R', '复位运行'));
 debugButton.addEventListener('click', () => sendCommand('D', '调试开关'));
 
-speedSlider.addEventListener('input', () => {
-  speedValue.textContent = speedSlider.value;
-  sendSpeed();
+straightSpeedSlider.addEventListener('input', () => {
+  straightSpeedValue.textContent = straightSpeedSlider.value;
+  sendStraightSpeed();
 });
 
-speedSlider.addEventListener('change', () => sendSpeed(true));
+straightSpeedSlider.addEventListener('change', () => sendStraightSpeed(true));
+
+turnSpeedSlider.addEventListener('input', () => {
+  turnSpeedValue.textContent = turnSpeedSlider.value;
+  sendTurnSpeed();
+});
+
+turnSpeedSlider.addEventListener('change', () => sendTurnSpeed(true));
 
 setControlsEnabled(false);
 if (!('bluetooth' in navigator)) {

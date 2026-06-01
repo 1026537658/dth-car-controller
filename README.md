@@ -8,8 +8,10 @@
 - `X`：停止
 - `R`：复位并重新开始
 - `D`：切换串口调试输出
-- `V:<speed>`：设置循迹速度，例如 `V:95`
-- `S:<left>,<center>,<right>,<active>,<state>`：Arduino 发给网页的三路循迹遥测，例如 `S:620,220,610,1,follow`
+- `F:<speed>`：设置直线速度，例如 `F:120`
+- `C:<speed>`：设置转弯速度，例如 `C:75`
+- `V:<speed>`：兼容旧协议，等同于设置直线速度
+- `S:<left>,<center>,<right>,<active>,<state>,<straight>,<turn>`：Arduino 发给网页的三路循迹遥测，例如 `S:620,220,610,1,follow,120,75`
 
 网页通过 JDY-29 常用透传服务发送指令：
 

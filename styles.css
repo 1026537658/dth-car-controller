@@ -190,7 +190,11 @@ h1 {
   font-weight: 760;
 }
 
-#speedValue {
+.secondary-label {
+  margin-top: 18px;
+}
+
+.speed-output {
   min-width: 44px;
   color: var(--text);
   text-align: right;

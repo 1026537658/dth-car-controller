@@ -40,10 +40,15 @@
 
       <section class="speed-panel" aria-label="Speed">
         <div class="panel-label">
-          <span>速度</span>
-          <output id="speedValue">95</output>
+          <span>直线速度</span>
+          <output class="speed-output" id="straightSpeedValue">120</output>
         </div>
-        <input id="speedSlider" type="range" min="40" max="180" value="95" step="1" disabled>
+        <input id="straightSpeedSlider" type="range" min="40" max="180" value="120" step="1" disabled>
+        <div class="panel-label secondary-label">
+          <span>转弯速度</span>
+          <output class="speed-output" id="turnSpeedValue">75</output>
+        </div>
+        <input id="turnSpeedSlider" type="range" min="40" max="180" value="75" step="1" disabled>
       </section>
 
       <section class="tools-panel" aria-label="Tools">
@@ -53,7 +58,7 @@
 
       <section class="sensor-panel" aria-label="Tracking sensors">
         <div class="sensor-card">
-          <span class="sensor-label">左 A1</span>
+          <span class="sensor-label">左 A3</span>
           <strong id="leftSensor">---</strong>
         </div>
         <div class="sensor-card">
@@ -61,7 +66,7 @@
           <strong id="centerSensor">---</strong>
         </div>
         <div class="sensor-card">
-          <span class="sensor-label">右 A3</span>
+          <span class="sensor-label">右 A1</span>
           <strong id="rightSensor">---</strong>
         </div>
       </section>
@@ -83,9 +88,13 @@
           <span class="telemetry-label">运行状态</span>
           <strong id="runState">-</strong>
         </div>
+        <div>
+          <span class="telemetry-label">直线/转弯</span>
+          <strong id="speedEcho">-</strong>
+        </div>
       </section>
     </main>
 
-    <script src="app.js?v=tracking-telemetry-1"></script>
+    <script src="app.js?v=dual-speed-1"></script>
   </body>
 </html>
