@@ -51,6 +51,21 @@
         <button class="tool-button" id="debugButton" type="button" disabled>调试开关</button>
       </section>
 
+      <section class="sensor-panel" aria-label="Tracking sensors">
+        <div class="sensor-card">
+          <span class="sensor-label">左 A1</span>
+          <strong id="leftSensor">---</strong>
+        </div>
+        <div class="sensor-card">
+          <span class="sensor-label">中 A2</span>
+          <strong id="centerSensor">---</strong>
+        </div>
+        <div class="sensor-card">
+          <span class="sensor-label">右 A3</span>
+          <strong id="rightSensor">---</strong>
+        </div>
+      </section>
+
       <section class="telemetry-panel" aria-live="polite">
         <div>
           <span class="telemetry-label">设备</span>
@@ -60,9 +75,17 @@
           <span class="telemetry-label">最近指令</span>
           <strong id="commandEcho">-</strong>
         </div>
+        <div>
+          <span class="telemetry-label">黑线数量</span>
+          <strong id="activeCount">-</strong>
+        </div>
+        <div>
+          <span class="telemetry-label">运行状态</span>
+          <strong id="runState">-</strong>
+        </div>
       </section>
     </main>
 
-    <script src="app.js?v=tracking-1"></script>
+    <script src="app.js?v=tracking-telemetry-1"></script>
   </body>
 </html>

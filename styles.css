@@ -112,6 +112,7 @@ h1 {
 
 .status-strip,
 .speed-panel,
+.sensor-panel,
 .telemetry-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -213,6 +214,36 @@ input[type="range"] {
   border-radius: 8px;
   font-size: 15px;
   font-weight: 730;
+}
+
+.sensor-panel {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.sensor-card {
+  min-width: 0;
+  border-radius: 8px;
+  background: var(--surface-soft);
+  padding: 12px 8px;
+  display: grid;
+  gap: 6px;
+  text-align: center;
+}
+
+.sensor-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.sensor-card strong {
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 24px;
+  line-height: 1.1;
 }
 
 .telemetry-panel {

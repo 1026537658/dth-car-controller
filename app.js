@@ -3,10 +3,12 @@ const SERVICE_UUID = '0000ffe0-0000-1000-8000-00805f9b34fb';
 const CHARACTERISTIC_UUID = '0000ffe1-0000-1000-8000-00805f9b34fb';
 
 const encoder = new TextEncoder();
+const decoder = new TextDecoder();
 let bluetoothDevice = null;
 let carCharacteristic = null;
 let writeQueue = Promise.resolve();
 let lastSpeedSentAt = 0;
+let telemetryBuffer = '';
 
 const connectButton = document.querySelector('#connectButton');
 const connectLabel = document.querySelector('#connectLabel');
@@ -21,6 +23,11 @@ const resetButton = document.querySelector('#resetButton');
 const debugButton = document.querySelector('#debugButton');
 const deviceName = document.querySelector('#deviceName');
 const commandEcho = document.querySelector('#commandEcho');
+const leftSensor = document.querySelector('#leftSensor');
+const centerSensor = document.querySelector('#centerSensor');
+const rightSensor = document.querySelector('#rightSensor');
+const activeCount = document.querySelector('#activeCount');
+const runState = document.querySelector('#runState');
 
 const controls = [startButton, stopButton, resetButton, debugButton, speedSlider];
 
@@ -68,6 +75,7 @@ async function connectBluetooth() {
     const server = await bluetoothDevice.gatt.connect();
     const service = await server.getPrimaryService(SERVICE_UUID);
     carCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+    await startTelemetryNotifications();
 
     setStatus(deviceName.textContent, true);
     await sendSpeed(true);
@@ -82,6 +90,47 @@ async function connectBluetooth() {
 function handleDisconnect() {
   carCharacteristic = null;
   setStatus('已断开');
+}
+
+async function startTelemetryNotifications() {
+  try {
+    await carCharacteristic.startNotifications();
+    carCharacteristic.addEventListener('characteristicvaluechanged', handleTelemetryChanged);
+  } catch (error) {
+    console.warn('Notifications unavailable:', error);
+    setStatus('已连接，遥测通知不可用', true);
+  }
+}
+
+function handleTelemetryChanged(event) {
+  telemetryBuffer += decoder.decode(event.target.value);
+
+  let lineBreakIndex = telemetryBuffer.search(/[\r\n]/);
+  while (lineBreakIndex >= 0) {
+    const line = telemetryBuffer.slice(0, lineBreakIndex).trim();
+    telemetryBuffer = telemetryBuffer.slice(lineBreakIndex + 1);
+    if (line) {
+      handleTelemetryLine(line);
+    }
+    lineBreakIndex = telemetryBuffer.search(/[\r\n]/);
+  }
+}
+
+function handleTelemetryLine(line) {
+  if (!line.startsWith('S:')) {
+    return;
+  }
+
+  const parts = line.slice(2).split(',');
+  if (parts.length < 5) {
+    return;
+  }
+
+  leftSensor.textContent = parts[0];
+  centerSensor.textContent = parts[1];
+  rightSensor.textContent = parts[2];
+  activeCount.textContent = parts[3];
+  runState.textContent = parts.slice(4).join(',');
 }
 
 async function sendCommand(command, label = command) {
