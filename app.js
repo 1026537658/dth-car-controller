@@ -1,14 +1,12 @@
-const DEVICE_NAME = '=DTH';
+const DEVICE_NAME_HINT = '=DTH';
 const SERVICE_UUID = '0000ffe0-0000-1000-8000-00805f9b34fb';
 const CHARACTERISTIC_UUID = '0000ffe1-0000-1000-8000-00805f9b34fb';
 
 const encoder = new TextEncoder();
 let bluetoothDevice = null;
 let carCharacteristic = null;
-let joystickPointerId = null;
-let lastJoystickSentAt = 0;
-let lastJoystickCommand = '';
 let writeQueue = Promise.resolve();
+let lastSpeedSentAt = 0;
 
 const connectButton = document.querySelector('#connectButton');
 const connectLabel = document.querySelector('#connectLabel');
@@ -17,17 +15,31 @@ const statusDot = document.querySelector('#statusDot');
 const lastCommand = document.querySelector('#lastCommand');
 const speedSlider = document.querySelector('#speedSlider');
 const speedValue = document.querySelector('#speedValue');
-const joystick = document.querySelector('#joystick');
-const joystickKnob = document.querySelector('#joystickKnob');
+const startButton = document.querySelector('#startButton');
+const stopButton = document.querySelector('#stopButton');
+const resetButton = document.querySelector('#resetButton');
+const debugButton = document.querySelector('#debugButton');
+const deviceName = document.querySelector('#deviceName');
+const commandEcho = document.querySelector('#commandEcho');
+
+const controls = [startButton, stopButton, resetButton, debugButton, speedSlider];
+
+function setControlsEnabled(enabled) {
+  controls.forEach((control) => {
+    control.disabled = !enabled;
+  });
+}
 
 function setStatus(text, connected = false) {
   connectionStatus.textContent = text;
-  connectLabel.textContent = connected ? 'Connected' : 'Connect';
+  connectLabel.textContent = connected ? '已连接' : '连接';
   statusDot.classList.toggle('connected', connected);
+  setControlsEnabled(connected);
 }
 
-function setLastCommand(command) {
-  lastCommand.textContent = command.trim() || 'X';
+function setLastCommand(label, command) {
+  lastCommand.textContent = label;
+  commandEcho.textContent = command.trim() || 'X';
 }
 
 function showError(prefix, error) {
@@ -37,45 +49,43 @@ function showError(prefix, error) {
 
 async function connectBluetooth() {
   if (!('bluetooth' in navigator)) {
-    setStatus('Bluetooth unavailable');
-    alert('当前浏览器没有 Web Bluetooth。iPhone 请用 Bluefy 打开这个网页，不要用 Safari/Chrome。');
+    setStatus('浏览器不支持 Web Bluetooth');
+    alert('当前浏览器没有 Web Bluetooth。Android 可用 Chrome/Edge；iPhone 请用 Bluefy 打开 GitHub Pages 网页。');
     return;
   }
 
   try {
-    setStatus('Open Bluetooth picker...');
-    bluetoothDevice = await requestBluetoothDevice();
+    setStatus('正在搜索设备...');
+    bluetoothDevice = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [SERVICE_UUID],
+    });
 
     bluetoothDevice.addEventListener('gattserverdisconnected', handleDisconnect);
-    setStatus('Connecting...');
+    deviceName.textContent = bluetoothDevice.name || DEVICE_NAME_HINT;
+    setStatus('正在连接...');
 
     const server = await bluetoothDevice.gatt.connect();
     const service = await server.getPrimaryService(SERVICE_UUID);
     carCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
 
-    setStatus(DEVICE_NAME, true);
-    await sendCommand('X');
+    setStatus(deviceName.textContent, true);
+    await sendSpeed(true);
+    await sendCommand('X', '待机');
   } catch (error) {
     console.error('Bluetooth connection failed:', error);
     carCharacteristic = null;
-    showError(error.name || 'Bluetooth failed', error);
+    showError(error.name || '连接失败', error);
   }
-}
-
-async function requestBluetoothDevice() {
-  return navigator.bluetooth.requestDevice({
-    acceptAllDevices: true,
-    optionalServices: [SERVICE_UUID],
-  });
 }
 
 function handleDisconnect() {
   carCharacteristic = null;
-  setStatus('Offline');
+  setStatus('已断开');
 }
 
-async function sendCommand(command) {
-  setLastCommand(command);
+async function sendCommand(command, label = command) {
+  setLastCommand(label, command);
 
   if (!carCharacteristic) {
     return;
@@ -90,122 +100,45 @@ async function sendCommand(command) {
       return carCharacteristic.writeValue(payload);
     })
     .then(() => {
-      setStatus(`${DEVICE_NAME} · sent ${command.trim() || 'X'}`, true);
+      setStatus(`${deviceName.textContent} · ${label}`, true);
+      if (navigator.vibrate) {
+        navigator.vibrate(25);
+      }
     })
     .catch((error) => {
       console.error('Command write failed:', error);
-      setStatus('Write failed', false);
+      setStatus('发送失败');
     });
 
   await writeQueue;
 }
 
-function bindDirectionButtons() {
-  document.querySelectorAll('[data-command]').forEach((button) => {
-    button.addEventListener('pointerdown', (event) => {
-      event.preventDefault();
-      sendCommand(button.dataset.command);
-      if (navigator.vibrate) {
-        navigator.vibrate(35);
-      }
-    });
-  });
-}
-
-function bindSpeedSlider() {
-  const sendSpeed = () => {
-    speedValue.textContent = speedSlider.value;
-    sendCommand(`V:${speedSlider.value}\n`);
-  };
-
-  speedSlider.addEventListener('input', () => {
-    speedValue.textContent = speedSlider.value;
-  });
-  speedSlider.addEventListener('change', sendSpeed);
-  speedSlider.addEventListener('pointerup', sendSpeed);
-}
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function joystickPointToCommand(event) {
-  const rect = joystick.getBoundingClientRect();
-  const radius = rect.width / 2;
-  const knobRadius = joystickKnob.offsetWidth / 2;
-  const maxDistance = radius - knobRadius - 14;
-  const centerX = rect.left + radius;
-  const centerY = rect.top + radius;
-  const rawX = event.clientX - centerX;
-  const rawY = event.clientY - centerY;
-  const distance = Math.hypot(rawX, rawY);
-  const limitedDistance = Math.min(distance, maxDistance);
-  const angle = Math.atan2(rawY, rawX);
-  const dx = Math.cos(angle) * limitedDistance;
-  const dy = Math.sin(angle) * limitedDistance;
-  const x = clamp(Math.round((dx / maxDistance) * 100), -100, 100);
-  const y = clamp(Math.round((-dy / maxDistance) * 100), -100, 100);
-
-  joystickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-
-  if (Math.abs(x) < 25 && Math.abs(y) < 25) {
-    return 'X';
-  }
-  return `J:${x},${y}\n`;
-}
-
-function resetJoystick() {
-  joystickKnob.style.transform = 'translate(-50%, -50%)';
-  lastJoystickCommand = '';
-  sendCommand('X');
-}
-
-function maybeSendJoystick(command) {
+async function sendSpeed(force = false) {
+  speedValue.textContent = speedSlider.value;
   const now = performance.now();
-  if (command === lastJoystickCommand && now - lastJoystickSentAt < 90) {
+
+  if (!force && now - lastSpeedSentAt < 70) {
     return;
   }
 
-  lastJoystickCommand = command;
-  lastJoystickSentAt = now;
-  sendCommand(command);
-}
-
-function bindJoystick() {
-  joystick.addEventListener('pointerdown', (event) => {
-    event.preventDefault();
-    joystickPointerId = event.pointerId;
-    joystick.setPointerCapture(joystickPointerId);
-    maybeSendJoystick(joystickPointToCommand(event));
-  });
-
-  joystick.addEventListener('pointermove', (event) => {
-    if (event.pointerId !== joystickPointerId) {
-      return;
-    }
-
-    event.preventDefault();
-    maybeSendJoystick(joystickPointToCommand(event));
-  });
-
-  const finish = (event) => {
-    if (event.pointerId !== joystickPointerId) {
-      return;
-    }
-
-    joystickPointerId = null;
-    resetJoystick();
-  };
-
-  joystick.addEventListener('pointerup', finish);
-  joystick.addEventListener('pointercancel', finish);
+  lastSpeedSentAt = now;
+  await sendCommand(`V:${speedSlider.value}\n`, `速度 ${speedSlider.value}`);
 }
 
 connectButton.addEventListener('click', connectBluetooth);
-bindDirectionButtons();
-bindSpeedSlider();
-bindJoystick();
+startButton.addEventListener('click', () => sendCommand('T', '开始循迹'));
+stopButton.addEventListener('click', () => sendCommand('X', '停止'));
+resetButton.addEventListener('click', () => sendCommand('R', '复位运行'));
+debugButton.addEventListener('click', () => sendCommand('D', '调试开关'));
 
+speedSlider.addEventListener('input', () => {
+  speedValue.textContent = speedSlider.value;
+  sendSpeed();
+});
+
+speedSlider.addEventListener('change', () => sendSpeed(true));
+
+setControlsEnabled(false);
 if (!('bluetooth' in navigator)) {
-  setStatus('Bluetooth unavailable');
+  setStatus('浏览器不支持 Web Bluetooth');
 }
