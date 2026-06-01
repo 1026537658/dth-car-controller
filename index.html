@@ -49,6 +49,16 @@
           <output class="speed-output" id="turnSpeedValue">75</output>
         </div>
         <input id="turnSpeedSlider" type="range" min="40" max="180" value="75" step="1" disabled>
+        <div class="panel-label secondary-label">
+          <span>修正时间</span>
+          <output class="speed-output" id="adjustMsValue">70</output>
+        </div>
+        <input id="adjustMsSlider" type="range" min="20" max="250" value="70" step="10" disabled>
+        <div class="panel-label secondary-label">
+          <span>差速大小</span>
+          <output class="speed-output" id="diffPwmValue">70</output>
+        </div>
+        <input id="diffPwmSlider" type="range" min="10" max="120" value="70" step="5" disabled>
       </section>
 
       <section class="tools-panel" aria-label="Tools">
@@ -96,9 +106,13 @@
           <span class="telemetry-label">偏差</span>
           <strong id="errorEcho">-</strong>
         </div>
+        <div>
+          <span class="telemetry-label">修正/差速</span>
+          <strong id="adjustEcho">-</strong>
+        </div>
       </section>
     </main>
 
-    <script src="app.js?v=digital-d0-1"></script>
+    <script src="app.js?v=adjust-diff-1"></script>
   </body>
 </html>

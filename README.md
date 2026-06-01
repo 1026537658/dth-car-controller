@@ -10,8 +10,10 @@
 - `D`：切换串口调试输出
 - `F:<speed>`：设置直线速度，例如 `F:120`
 - `C:<speed>`：设置转弯速度，例如 `C:75`
+- `A:<ms>`：设置侧边强修正时间，例如 `A:70`
+- `B:<diff>`：设置侧边差速大小，例如 `B:70`
 - `V:<speed>`：兼容旧协议，等同于设置直线速度
-- `S:<left>,<center>,<right>,<active>,<state>,<straight>,<turn>,<error>`：Arduino 发给网页的三路数字循迹遥测，例如 `S:0,1,0,1,follow,115,80,0`
+- `S:<left>,<center>,<right>,<active>,<state>,<straight>,<turn>,<error>,<adjust_ms>,<diff>`：Arduino 发给网页的三路数字循迹遥测，例如 `S:0,1,0,1,follow,115,80,0,70,70`
 
 网页通过 JDY-29 常用透传服务发送指令：
 
