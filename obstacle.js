@@ -26,6 +26,7 @@ const leftSensor = document.querySelector('#leftSensor');
 const rightSensor = document.querySelector('#rightSensor');
 const runState = document.querySelector('#runState');
 const speedEcho = document.querySelector('#speedEcho');
+const scaleEcho = document.querySelector('#scaleEcho');
 const logicEcho = document.querySelector('#logicEcho');
 const timingEcho = document.querySelector('#timingEcho');
 
@@ -37,7 +38,10 @@ const controls = [
   document.querySelector('#cruiseSlider'),
   document.querySelector('#turnSlider'),
   document.querySelector('#backSlider'),
+  document.querySelector('#leftScaleSlider'),
+  document.querySelector('#rightScaleSlider'),
   document.querySelector('#confirmSlider'),
+  document.querySelector('#sideTurnSlider'),
   document.querySelector('#backMsSlider'),
   document.querySelector('#escapeMsSlider'),
 ];
@@ -46,7 +50,10 @@ const tunables = [
   { slider: '#cruiseSlider', output: '#cruiseValue', prefix: 'P', label: '巡航' },
   { slider: '#turnSlider', output: '#turnValue', prefix: 'C', label: '转向' },
   { slider: '#backSlider', output: '#backValue', prefix: 'B', label: '后退' },
+  { slider: '#leftScaleSlider', output: '#leftScaleValue', prefix: 'G', label: '左轮系数' },
+  { slider: '#rightScaleSlider', output: '#rightScaleValue', prefix: 'H', label: '右轮系数' },
   { slider: '#confirmSlider', output: '#confirmValue', prefix: 'M', label: '确认' },
+  { slider: '#sideTurnSlider', output: '#sideTurnValue', prefix: 'Q', label: '单侧转向' },
   { slider: '#backMsSlider', output: '#backMsValue', prefix: 'N', label: '后退时间' },
   { slider: '#escapeMsSlider', output: '#escapeMsValue', prefix: 'E', label: '脱困' },
 ].map((item) => ({
@@ -160,7 +167,13 @@ function handleTelemetryLine(line) {
   activeLow = parts[6] === '1';
   logicButton.textContent = activeLow ? 'LOW=障碍' : 'HIGH=障碍';
   logicEcho.textContent = activeLow ? 'LOW=障碍' : 'HIGH=障碍';
-  timingEcho.textContent = `${parts[7]} / ${parts[8]} / ${parts[9]} ms`;
+  if (parts.length >= 13) {
+    timingEcho.textContent = `${parts[7]} / ${parts[8]} / ${parts[9]} / ${parts[10]} ms`;
+    scaleEcho.textContent = `${parts[11]}% / ${parts[12]}%`;
+  } else {
+    timingEcho.textContent = `${parts[7]} / ${parts[8]} / ${parts[9]} ms`;
+    scaleEcho.textContent = '-';
+  }
 }
 
 async function sendCommand(command, label = command) {

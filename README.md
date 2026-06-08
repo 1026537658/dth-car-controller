@@ -29,11 +29,14 @@
 - `P:<speed>`：设置巡航速度，例如 `P:100`
 - `C:<speed>`：设置转向速度，例如 `C:95`
 - `B:<speed>`：设置后退速度，例如 `B:85`
+- `G:<percent>`：设置左轮速度系数，例如 `G:88`
+- `H:<percent>`：设置右轮速度系数，例如 `H:100`
 - `L:<0|1>`：设置红外避障有效电平，`1` 表示 `LOW=障碍物`
 - `M:<ms>`：设置传感器确认时间，例如 `M:60`
+- `Q:<ms>`：设置单侧避障转向保持时间，例如 `Q:180`
 - `N:<ms>`：设置后退时间，例如 `N:420`
 - `E:<ms>`：设置脱困转向时间，例如 `E:520`
-- `O:<left>,<right>,<state>,<cruise>,<turn>,<back>,<activeLow>,<confirm>,<backMs>,<escapeMs>`：Arduino 发给网页的避障遥测，例如 `O:0,1,turn-left,100,95,85,1,60,420,520`
+- `O:<left>,<right>,<state>,<cruise>,<turn>,<back>,<activeLow>,<confirm>,<sideTurn>,<backMs>,<escapeMs>,<leftScale>,<rightScale>`：Arduino 发给网页的避障遥测，例如 `O:0,1,turn-left,100,95,85,1,60,180,420,520,88,100`
 
 网页通过 JDY-29 常用透传服务发送指令：
 

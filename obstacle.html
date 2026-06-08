@@ -58,10 +58,28 @@
         <input id="backSlider" type="range" min="40" max="180" value="85" step="1" disabled>
 
         <div class="panel-label secondary-label">
+          <span>左轮系数</span>
+          <output class="speed-output" id="leftScaleValue">88</output>
+        </div>
+        <input id="leftScaleSlider" type="range" min="50" max="140" value="88" step="1" disabled>
+
+        <div class="panel-label secondary-label">
+          <span>右轮系数</span>
+          <output class="speed-output" id="rightScaleValue">100</output>
+        </div>
+        <input id="rightScaleSlider" type="range" min="50" max="140" value="100" step="1" disabled>
+
+        <div class="panel-label secondary-label">
           <span>确认时间</span>
           <output class="speed-output" id="confirmValue">60</output>
         </div>
         <input id="confirmSlider" type="range" min="20" max="300" value="60" step="10" disabled>
+
+        <div class="panel-label secondary-label">
+          <span>单侧转向</span>
+          <output class="speed-output" id="sideTurnValue">180</output>
+        </div>
+        <input id="sideTurnSlider" type="range" min="60" max="600" value="180" step="20" disabled>
 
         <div class="panel-label secondary-label">
           <span>后退时间</span>
@@ -110,6 +128,10 @@
           <strong id="speedEcho">-</strong>
         </div>
         <div>
+          <span class="telemetry-label">左右轮系数</span>
+          <strong id="scaleEcho">-</strong>
+        </div>
+        <div>
           <span class="telemetry-label">逻辑</span>
           <strong id="logicEcho">-</strong>
         </div>
@@ -120,6 +142,6 @@
       </section>
     </main>
 
-    <script src="obstacle.js?v=obstacle-1"></script>
+    <script src="obstacle.js?v=obstacle-2"></script>
   </body>
 </html>
