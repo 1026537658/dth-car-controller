@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f6f7fb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Obstacle Car">
+    <title>Obstacle Car</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="top-bar">
+        <div>
+          <p class="eyebrow">BLE Obstacle</p>
+          <h1>避障小车</h1>
+        </div>
+        <button class="connect-button" id="connectButton" type="button">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="connectLabel">连接</span>
+        </button>
+      </header>
+
+      <section class="status-strip" aria-live="polite">
+        <span id="connectionStatus">未连接</span>
+        <span id="lastCommand">待机</span>
+      </section>
+
+      <section class="run-panel" aria-label="Run controls">
+        <button class="primary-button start-button" id="startButton" type="button" disabled>
+          <span class="button-icon">▶</span>
+          <span>开始避障</span>
+        </button>
+        <button class="primary-button stop-button" id="stopButton" type="button" disabled>
+          <span class="button-icon">■</span>
+          <span>停止</span>
+        </button>
+      </section>
+
+      <section class="speed-panel" aria-label="Obstacle tuning">
+        <div class="panel-label">
+          <span>巡航速度</span>
+          <output class="speed-output" id="cruiseValue">100</output>
+        </div>
+        <input id="cruiseSlider" type="range" min="40" max="180" value="100" step="1" disabled>
+
+        <div class="panel-label secondary-label">
+          <span>转向速度</span>
+          <output class="speed-output" id="turnValue">95</output>
+        </div>
+        <input id="turnSlider" type="range" min="40" max="180" value="95" step="1" disabled>
+
+        <div class="panel-label secondary-label">
+          <span>后退速度</span>
+          <output class="speed-output" id="backValue">85</output>
+        </div>
+        <input id="backSlider" type="range" min="40" max="180" value="85" step="1" disabled>
+
+        <div class="panel-label secondary-label">
+          <span>确认时间</span>
+          <output class="speed-output" id="confirmValue">60</output>
+        </div>
+        <input id="confirmSlider" type="range" min="20" max="300" value="60" step="10" disabled>
+
+        <div class="panel-label secondary-label">
+          <span>后退时间</span>
+          <output class="speed-output" id="backMsValue">420</output>
+        </div>
+        <input id="backMsSlider" type="range" min="100" max="1200" value="420" step="20" disabled>
+
+        <div class="panel-label secondary-label">
+          <span>脱困转向</span>
+          <output class="speed-output" id="escapeMsValue">520</output>
+        </div>
+        <input id="escapeMsSlider" type="range" min="100" max="1500" value="520" step="20" disabled>
+      </section>
+
+      <section class="tools-panel" aria-label="Tools">
+        <button class="tool-button" id="logicButton" type="button" disabled>LOW=障碍</button>
+        <button class="tool-button" id="debugButton" type="button" disabled>调试开关</button>
+      </section>
+
+      <section class="sensor-panel" aria-label="Obstacle sensors">
+        <div class="sensor-card">
+          <span class="sensor-label">左 A4</span>
+          <strong id="leftSensor">---</strong>
+        </div>
+        <div class="sensor-card">
+          <span class="sensor-label">右 A5</span>
+          <strong id="rightSensor">---</strong>
+        </div>
+      </section>
+
+      <section class="telemetry-panel" aria-live="polite">
+        <div>
+          <span class="telemetry-label">设备</span>
+          <strong id="deviceName">-</strong>
+        </div>
+        <div>
+          <span class="telemetry-label">最近指令</span>
+          <strong id="commandEcho">-</strong>
+        </div>
+        <div>
+          <span class="telemetry-label">运行状态</span>
+          <strong id="runState">-</strong>
+        </div>
+        <div>
+          <span class="telemetry-label">速度</span>
+          <strong id="speedEcho">-</strong>
+        </div>
+        <div>
+          <span class="telemetry-label">逻辑</span>
+          <strong id="logicEcho">-</strong>
+        </div>
+        <div>
+          <span class="telemetry-label">时间参数</span>
+          <strong id="timingEcho">-</strong>
+        </div>
+      </section>
+    </main>
+
+    <script src="obstacle.js?v=obstacle-1"></script>
+  </body>
+</html>
